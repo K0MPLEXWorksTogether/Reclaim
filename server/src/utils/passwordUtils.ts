@@ -1,14 +1,16 @@
-import bcrypt from "bcrypt";
+import argon2 from "argon2";
 
-const SALT_ROUNDS: number = parseInt(process.env.PASSWORD_SALT ?? "") ?? 10;
+const OPTIONS = {
+  type: argon2.argon2id,
+  memoryCost: 2 * 16, // 64 MB
+  timeCost: 3,
+  parallelism: 1,
+};
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+export async function hashPassword(password: string) {
+  return argon2.hash(password);
 }
 
-export async function comparePassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+export async function comparePassword(password: string, hash: string) {
+  return argon2.verify(hash, password);
 }
