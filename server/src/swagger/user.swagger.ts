@@ -8,14 +8,60 @@ const userSwaggerDocument = {
   info: {
     title: "User API",
     version: "1.0.0",
-    description: "User management API documentation for Reclaim Habit Tracker",
+    description:
+      "User management API documentation for Reclaim Habit Tracker. Includes authentication and profile management endpoints.",
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+    schemas: {
+      User: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
+          },
+          username: {
+            type: "string",
+            example: "john_doe",
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            example: "2021-01-01T12:00:00Z",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            example: "2021-01-01T12:00:00Z",
+          },
+        },
+        required: ["id", "username", "createdAt", "updatedAt"],
+      },
+      Error: {
+        type: "object",
+        properties: {
+          error: {
+            type: "string",
+            example: "Validation error: Invalid username",
+          },
+        },
+      },
+    },
   },
   paths: {
     "/users/signup": {
       post: {
         summary: "Signup a new user",
         description:
-          "This endpoint allows a user to sign up with a username and password.",
+          "Allows a new user to sign up using a username and password.",
         requestBody: {
           required: true,
           content: {
@@ -23,14 +69,8 @@ const userSwaggerDocument = {
               schema: {
                 type: "object",
                 properties: {
-                  username: {
-                    type: "string",
-                    example: "john_doe",
-                  },
-                  password: {
-                    type: "string",
-                    example: "password123",
-                  },
+                  username: { type: "string", example: "john_doe" },
+                  password: { type: "string", example: "password123" },
                 },
                 required: ["username", "password"],
               },
@@ -38,33 +78,27 @@ const userSwaggerDocument = {
           },
         },
         responses: {
-          "201": {
+          201: {
             description: "User successfully created",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/User",
-                },
+                schema: { $ref: "#/components/schemas/User" },
               },
             },
           },
-          "400": {
+          400: {
             description: "Validation error",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
-          "500": {
+          500: {
             description: "Server error",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
@@ -75,7 +109,7 @@ const userSwaggerDocument = {
       post: {
         summary: "Login and get JWT token",
         description:
-          "This endpoint allows a user to login and receive a JWT token for authentication.",
+          "Authenticates a user and returns a JWT token for subsequent requests.",
         requestBody: {
           required: true,
           content: {
@@ -83,14 +117,8 @@ const userSwaggerDocument = {
               schema: {
                 type: "object",
                 properties: {
-                  username: {
-                    type: "string",
-                    example: "john_doe",
-                  },
-                  password: {
-                    type: "string",
-                    example: "password123",
-                  },
+                  username: { type: "string", example: "john_doe" },
+                  password: { type: "string", example: "password123" },
                 },
                 required: ["username", "password"],
               },
@@ -98,7 +126,7 @@ const userSwaggerDocument = {
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "JWT token successfully generated",
             content: {
               "application/json": {
@@ -114,95 +142,65 @@ const userSwaggerDocument = {
               },
             },
           },
-          "400": {
+          400: {
             description: "Invalid credentials",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
-          "500": {
+          500: {
             description: "Server error",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
         },
       },
     },
-    "/users/{id}": {
+    "/users/profile": {
       get: {
-        summary: "Get user profile",
-        description: "Retrieve the profile of a user by their ID.",
-        parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            description: "User ID",
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
-          },
-        ],
+        summary: "Get logged-in user profile",
+        description:
+          "Retrieves the authenticated user's profile. Requires a valid JWT token.",
+        security: [{ bearerAuth: [] }],
         responses: {
-          "200": {
+          200: {
             description: "User profile retrieved successfully",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/User",
-                },
+                schema: { $ref: "#/components/schemas/User" },
               },
             },
           },
-          "404": {
+          401: {
+            description: "Unauthorized - missing or invalid token",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+              },
+            },
+          },
+          404: {
             description: "User not found",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
-              },
-            },
-          },
-          "500": {
-            description: "Server error",
-            content: {
-              "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
         },
       },
     },
-    "/users/{id}/reset-password": {
+    "/users/reset-password": {
       patch: {
         summary: "Reset user password",
-        description: "Reset the password of a user by their ID.",
-        parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            description: "User ID",
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
-          },
-        ],
+        description:
+          "Allows the authenticated user to reset their own password.",
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -221,55 +219,38 @@ const userSwaggerDocument = {
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "Password successfully reset",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/User",
-                },
+                schema: { $ref: "#/components/schemas/User" },
               },
             },
           },
-          "400": {
+          400: {
             description: "Validation error",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
-          "500": {
-            description: "Server error",
+          401: {
+            description: "Unauthorized - missing or invalid token",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
         },
       },
     },
-    "/users/{id}/change-username": {
+    "/users/change-username": {
       patch: {
         summary: "Change user username",
-        description: "Change the username of a user by their ID.",
-        parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            description: "User ID",
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
-          },
-        ],
+        description: "Allows the authenticated user to change their username.",
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -288,92 +269,36 @@ const userSwaggerDocument = {
           },
         },
         responses: {
-          "200": {
+          200: {
             description: "Username successfully changed",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/User",
-                },
+                schema: { $ref: "#/components/schemas/User" },
               },
             },
           },
-          "400": {
+          400: {
             description: "Validation error",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
-          "500": {
-            description: "Server error",
+          401: {
+            description: "Unauthorized - missing or invalid token",
             content: {
               "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/Error",
-                },
+                schema: { $ref: "#/components/schemas/Error" },
               },
             },
           },
         },
-      },
-    },
-  },
-  components: {
-    schemas: {
-      User: {
-        type: "object",
-        properties: {
-          id: {
-            type: "string",
-            format: "uuid",
-            example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-          },
-          username: {
-            type: "string",
-            example: "john_doe",
-          },
-          email: {
-            type: "string",
-            format: "email",
-            example: "john.doe@example.com",
-          },
-          createdAt: {
-            type: "string",
-            format: "date-time",
-            example: "2021-01-01T12:00:00Z",
-          },
-          updatedAt: {
-            type: "string",
-            format: "date-time",
-            example: "2021-01-01T12:00:00Z",
-          },
-        },
-        required: ["id", "username", "email", "createdAt", "updatedAt"],
-      },
-      Error: {
-        type: "object",
-        properties: {
-          message: {
-            type: "string",
-            example: "Invalid credentials",
-          },
-          code: {
-            type: "integer",
-            example: 400,
-          },
-        },
-        required: ["message", "code"],
       },
     },
   },
 };
 
-router.use("/", swaggerUi.serve, (req: Request, res: Response) => {
-  return res.send(swaggerUi.generateHTML(userSwaggerDocument));
-});
+router.use("/", swaggerUi.serve, swaggerUi.setup(userSwaggerDocument));
 
 export default router;

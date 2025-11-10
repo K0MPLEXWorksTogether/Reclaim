@@ -51,7 +51,7 @@ export class UserController {
 
   static async getProfile(req: Request, res: Response) {
     try {
-      const userId = req.params.id;
+      const userId = req.userId ?? "";
       const user = await userRepo.getProfile(userId);
       if (!user) return res.status(404).json({ error: "User not found" });
       res.status(200).json({
@@ -67,7 +67,7 @@ export class UserController {
 
   static async resetPassword(req: Request, res: Response) {
     try {
-      const userId = req.params.id;
+      const userId = req.userId ?? "";
       const { newPassword } = resetPasswordValidator.parse(req.body);
       const user = await userRepo.resetPassword(userId, newPassword);
       res.status(200).json({ id: user.id, username: user.username });
@@ -84,7 +84,7 @@ export class UserController {
 
   static async changeUsername(req: Request, res: Response) {
     try {
-      const userId = req.params.id;
+      const userId = req.userId ?? "";
       const { newUsername } = changeUsernameValidator.parse(req.body);
       const user = await userRepo.changeUsername(userId, newUsername);
       res.status(200).json({ id: user.id, username: user.username });
