@@ -3,10 +3,14 @@ import userRoutes from "./routers/user.route";
 
 import userSwaggerRoute from "./swagger/user.swagger";
 
+import { requestLogger } from "./middleware/logger.middleware";
+
 const app = express();
 app.use(express.json());
+app.use(requestLogger);
 
 app.use("/users", userRoutes);
+
 
 app.use("/api-docs/users", userSwaggerRoute);
 
