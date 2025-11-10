@@ -1,0 +1,59 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../generated/prisma-client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id           String   @id @default(cuid())
+    username     String   @unique
+    passwordHash String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    updateCount  Int      @default(0)
+
+    habits     Habit[]
+    addictions Addiction[]
+    journals   Journal[]
+}
+
+model Habit {
+    id          String   @id @default(cuid())
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    userId      String
+    name        String
+    description String?
+    start       DateTime
+    frequency   Int
+    period      String
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model Addiction {
+    id          String    @id @default(cuid())
+    createdAt   DateTime  @default(now())
+    lastRelapse DateTime?
+    userId      String
+    name        String
+    description String?
+    startTime   DateTime
+    resetCount  Int       @default(0)
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model Journal {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    userId    String
+    content   String
+
+    user User @relation(fields: [userId], references: [id])
+}

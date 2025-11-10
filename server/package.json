@@ -1,0 +1,39 @@
+{
+  "name": "reclaim-server",
+  "version": "1.0.0",
+  "description": "A backend for a simple habit and addictions tracker.",
+  "keywords": [
+    "express",
+    "postgres"
+  ],
+  "license": "ISC",
+  "author": "Abhiram Mangipudi",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "dev": "npx tsc && doppler run -- node dist/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "@types/swagger-ui-express": "^4.1.8",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.0",
+    "prisma": "^6.19.0",
+    "typescript": "^5.9.3"
+  }
+}
