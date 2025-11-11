@@ -1,5 +1,6 @@
 import express from "express";
 import userRoutes from "./routers/user.route";
+import habitRoutes from "./routers/habit.route";
 
 import userSwaggerRoute from "./swagger/user.swagger";
 
@@ -10,7 +11,7 @@ app.use(express.json());
 app.use(requestLogger);
 
 app.use("/users", userRoutes);
-
+app.use("/habits", habitRoutes);
 
 app.use("/api-docs/users", userSwaggerRoute);
 
