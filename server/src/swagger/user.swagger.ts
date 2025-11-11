@@ -299,6 +299,8 @@ const userSwaggerDocument = {
   },
 };
 
-router.use("/", swaggerUi.serve, swaggerUi.setup(userSwaggerDocument));
+router.use("/", swaggerUi.serve, (req: Request, res: Response) => {
+  return res.send(swaggerUi.generateHTML(userSwaggerDocument));
+});
 
 export default router;

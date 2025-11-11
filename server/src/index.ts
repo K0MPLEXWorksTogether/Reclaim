@@ -3,6 +3,7 @@ import userRoutes from "./routers/user.route";
 import habitRoutes from "./routers/habit.route";
 
 import userSwaggerRoute from "./swagger/user.swagger";
+import habitSwaggerRoute from "./swagger/habit.swagger";
 
 import { requestLogger } from "./middleware/logger.middleware";
 
@@ -14,6 +15,7 @@ app.use("/users", userRoutes);
 app.use("/habits", habitRoutes);
 
 app.use("/api-docs/users", userSwaggerRoute);
+app.use("/api-docs/habits", habitSwaggerRoute);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
