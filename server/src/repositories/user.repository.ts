@@ -116,7 +116,7 @@ export class UserRepository implements UserInterface {
       );
       const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data: { passwordHash },
+        data: { passwordHash, updateCount: { increment: 1 } },
       });
 
       this.logger.success(
@@ -143,7 +143,7 @@ export class UserRepository implements UserInterface {
       );
       const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data: { username: newUsername },
+        data: { username: newUsername, updateCount: { increment: 1 } },
       });
 
       this.logger.success(
