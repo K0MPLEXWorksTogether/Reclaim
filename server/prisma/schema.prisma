@@ -19,6 +19,7 @@ model User {
     habits     Habit[]
     addictions Addiction[]
     journals   Journal[]
+    habitEntry HabitEntry[]
 }
 
 model Habit {
@@ -32,7 +33,8 @@ model Habit {
     frequency   Int
     period      String
 
-    user User @relation(fields: [userId], references: [id])
+    user       User         @relation(fields: [userId], references: [id])
+    habitentry HabitEntry[]
 }
 
 model Addiction {
@@ -54,6 +56,22 @@ model Journal {
     updatedAt DateTime @updatedAt
     userId    String
     content   String
+    title     String
 
     user User @relation(fields: [userId], references: [id])
+}
+
+model HabitEntry {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    habitId   String
+    entryDate DateTime
+    userId    String
+    entryTime DateTime
+
+    habit Habit @relation(fields: [habitId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
+
+    @@unique([habitId, userId, entryDate, entryTime])
 }
