@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export class HabitRepository implements HabitInterface {
   private logger = AppLogger.getInstance();
-  async createHabit(data: createHabitPayload): Promise<Habit> {
+  async createHabit(data: createHabitPayload, userId: string): Promise<Habit> {
     this.logger.info(`[repo] createHabit called with userId: ${data.userId}`);
     try {
       if (!data.name || !data.frequency || !data.period || !data.start) {
@@ -21,7 +21,7 @@ export class HabitRepository implements HabitInterface {
       }
 
       const existingUser = await prisma.habit.findFirst({
-        where: { name: data.name },
+        where: { name: data.name, userId: userId },
       });
       if (existingUser) {
         this.logger.warn(
@@ -33,9 +33,8 @@ export class HabitRepository implements HabitInterface {
       this.logger.info(
         `[repo] Creating new habit in the database ${data.name}`
       );
-      const newHabit = await prisma.habit.create({
-        data,
-      });
+      data.userId = userId;
+      const newHabit = await prisma.habit.create({ data });
 
       this.logger.success(
         `[repo] Habit created successfully with id: ${newHabit.id}`
@@ -49,7 +48,7 @@ export class HabitRepository implements HabitInterface {
     }
   }
 
-  async getHabit(habitId: string): Promise<Habit | null> {
+  async getHabit(habitId: string, userId: string): Promise<Habit | null> {
     this.logger.info(`[repo] getHabit() called with habitId: ${habitId}`);
     try {
       if (!habitId) {
@@ -57,7 +56,9 @@ export class HabitRepository implements HabitInterface {
         throw new InvalidError("habitId cannot be empty.");
       }
 
-      const habit = await prisma.habit.findUnique({ where: { id: habitId } });
+      const habit = await prisma.habit.findUnique({
+        where: { id: habitId, userId: userId },
+      });
       if (habit) {
         this.logger.warn(`[repo] Habit not found: ${habitId}`);
       } else {
@@ -73,7 +74,11 @@ export class HabitRepository implements HabitInterface {
     }
   }
 
-  async getAllHabits(page: number, limit: number): Promise<Habit[]> {
+  async getAllHabits(
+    page: number,
+    limit: number,
+    userId: string
+  ): Promise<Habit[]> {
     this.logger.info(`[repo] getAllHabits() called.`);
     try {
       if (!page || !limit) {
@@ -83,6 +88,7 @@ export class HabitRepository implements HabitInterface {
 
       const skip: number = (page - 1) * limit;
       const habits = await prisma.habit.findMany({
+        where: { userId: userId },
         skip: skip,
         take: limit,
         orderBy: {
@@ -100,11 +106,15 @@ export class HabitRepository implements HabitInterface {
     }
   }
 
-  async updateHabit(habitId: string, data: updateHabitPayload): Promise<Habit> {
+  async updateHabit(
+    habitId: string,
+    data: updateHabitPayload,
+    userId: string
+  ): Promise<Habit> {
     this.logger.info(`[repo] updateHabit called with habitId: ${habitId}`);
     try {
       const habitExists = await prisma.habit.findUnique({
-        where: { id: habitId },
+        where: { id: habitId, userId: userId },
       });
       if (!habitExists) {
         this.logger.warn(`[repo] Habit not found for update: ${habitId}`);
@@ -113,7 +123,7 @@ export class HabitRepository implements HabitInterface {
 
       this.logger.info(`[repo] Updating habit: ${habitId}`);
       const updatedHabit = await prisma.habit.update({
-        where: { id: habitId },
+        where: { id: habitId, userId: userId },
         data,
       });
 
@@ -129,11 +139,11 @@ export class HabitRepository implements HabitInterface {
     }
   }
 
-  async deleteHabit(habitId: string): Promise<Habit> {
+  async deleteHabit(habitId: string, userId: string): Promise<Habit> {
     this.logger.info(`[repo] deleteHabit called with habitId: ${habitId}`);
     try {
       const habitExists = await prisma.habit.findUnique({
-        where: { id: habitId },
+        where: { id: habitId, userId: userId },
       });
       if (!habitExists) {
         this.logger.warn(`[repo] Habit not found for deletion: ${habitId}`);
@@ -142,7 +152,7 @@ export class HabitRepository implements HabitInterface {
 
       this.logger.info(`[repo] Deleting habit: ${habitId}`);
       const deletedHabit = await prisma.habit.delete({
-        where: { id: habitId },
+        where: { id: habitId, userId: userId },
       });
 
       this.logger.success(
@@ -160,7 +170,8 @@ export class HabitRepository implements HabitInterface {
   async getHabitsByPeriod(
     page: number,
     limit: number,
-    period: string
+    period: string,
+    userId: string
   ): Promise<Habit[]> {
     this.logger.info(
       `[repo] getHabitsByPeriod() called with period: ${period}`
@@ -175,6 +186,7 @@ export class HabitRepository implements HabitInterface {
       const habits = await prisma.habit.findMany({
         where: {
           period: period,
+          userId: userId,
         },
         skip,
         take: limit,
@@ -198,7 +210,8 @@ export class HabitRepository implements HabitInterface {
   async getHabitsByFrequency(
     page: number,
     limit: number,
-    frequency: number
+    frequency: number,
+    userId: string
   ): Promise<Habit[]> {
     this.logger.info(
       `[repo] getHabitsByFrequency() called with frequency: ${frequency}`
@@ -213,6 +226,7 @@ export class HabitRepository implements HabitInterface {
       const habits = await prisma.habit.findMany({
         where: {
           frequency: frequency,
+          userId: userId,
         },
         skip,
         take: limit,

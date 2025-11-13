@@ -7,9 +7,9 @@ const habitSwaggerDocument = {
   openapi: "3.0.0",
   info: {
     title: "Habit API",
-    version: "1.0.0",
+    version: "1.1.0",
     description:
-      "Habit management API documentation for Reclaim Habit Tracker. Includes habit creation, retrieval, update, and deletion endpoints.",
+      "API documentation for the Habit management endpoints in Reclaim Habit Tracker. Supports habit creation, retrieval, update, filtering, and deletion.",
   },
   components: {
     securitySchemes: {
@@ -25,11 +25,35 @@ const habitSwaggerDocument = {
         properties: {
           id: {
             type: "string",
-            example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
+            example: "cuid_123abc",
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-01-01T12:00:00Z",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-01-02T12:00:00Z",
+          },
+          userId: {
+            type: "string",
+            example: "user_456def",
           },
           name: {
             type: "string",
-            example: "Drink water",
+            example: "Drink Water",
+          },
+          description: {
+            type: "string",
+            nullable: true,
+            example: "Drink 8 glasses of water per day",
+          },
+          start: {
+            type: "string",
+            format: "date-time",
+            example: "2025-01-01T00:00:00Z",
           },
           frequency: {
             type: "integer",
@@ -39,30 +63,16 @@ const habitSwaggerDocument = {
             type: "string",
             example: "Daily",
           },
-          start: {
-            type: "string",
-            format: "date-time",
-            example: "2023-10-01T00:00:00Z",
-          },
-          createdAt: {
-            type: "string",
-            format: "date-time",
-            example: "2023-10-01T12:00:00Z",
-          },
-          updatedAt: {
-            type: "string",
-            format: "date-time",
-            example: "2023-10-01T12:00:00Z",
-          },
         },
         required: [
           "id",
-          "name",
-          "frequency",
-          "period",
-          "start",
           "createdAt",
           "updatedAt",
+          "userId",
+          "name",
+          "start",
+          "frequency",
+          "period",
         ],
       },
       Error: {
@@ -70,7 +80,7 @@ const habitSwaggerDocument = {
         properties: {
           error: {
             type: "string",
-            example: "Validation error: Missing start date",
+            example: "Validation error: Missing required fields.",
           },
         },
       },
@@ -81,7 +91,7 @@ const habitSwaggerDocument = {
       post: {
         summary: "Create a new habit",
         description:
-          "Allows a user to create a new habit with the required information including name, frequency, period, and start date.",
+          "Create a new habit for the authenticated user. Requires JWT authentication.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -90,16 +100,20 @@ const habitSwaggerDocument = {
               schema: {
                 type: "object",
                 properties: {
-                  name: { type: "string", example: "Drink water" },
-                  frequency: { type: "integer", example: 3 },
-                  period: { type: "string", example: "Daily" },
+                  name: { type: "string", example: "Read a book" },
+                  description: {
+                    type: "string",
+                    example: "Read for at least 30 minutes",
+                  },
                   start: {
                     type: "string",
                     format: "date-time",
-                    example: "2023-10-01T00:00:00Z",
+                    example: "2025-01-01T00:00:00Z",
                   },
+                  frequency: { type: "integer", example: 3 },
+                  period: { type: "string", example: "Weekly" },
                 },
-                required: ["name", "frequency", "period", "start"],
+                required: ["name", "start", "frequency", "period"],
               },
             },
           },
@@ -121,57 +135,61 @@ const habitSwaggerDocument = {
               },
             },
           },
-          500: {
-            description: "Server error",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          401: { description: "Unauthorized - Missing or invalid token" },
+          500: { description: "Internal server error" },
         },
       },
       get: {
         summary: "Get all habits",
         description:
-          "Retrieves all habits associated with the authenticated user.",
+          "Retrieve all habits belonging to the authenticated user, with optional pagination.",
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", example: 1 },
+            description: "Page number for pagination",
+          },
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", example: 10 },
+            description: "Number of results per page",
+          },
+        ],
         responses: {
           200: {
-            description: "Habits retrieved successfully",
+            description: "List of habits retrieved successfully",
             content: {
               "application/json": {
-                type: "array",
-                items: { $ref: "#/components/schemas/Habit" },
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Habit" },
+                },
               },
             },
           },
-          401: {
-            description: "Unauthorized - Missing or invalid token",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          401: { description: "Unauthorized" },
+          500: { description: "Internal server error" },
         },
       },
     },
+
     "/habits/{id}": {
       get: {
-        summary: "Get a specific habit by ID",
-        description: "Retrieves a habit based on the provided ID.",
+        summary: "Get a habit by ID",
+        description: "Retrieve a specific habit by its ID for the user.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "id",
             in: "path",
             required: true,
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
-            description: "The unique ID of the habit to retrieve",
+            schema: { type: "string" },
+            description: "The ID of the habit to retrieve",
           },
         ],
         responses: {
@@ -183,30 +201,23 @@ const habitSwaggerDocument = {
               },
             },
           },
-          404: {
-            description: "Habit not found",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          404: { description: "Habit not found" },
+          401: { description: "Unauthorized" },
+          500: { description: "Internal server error" },
         },
       },
       put: {
         summary: "Update an existing habit",
         description:
-          "Allows the user to update the details of an existing habit, including name, frequency, period, and start date.",
+          "Update details of a specific habit owned by the authenticated user.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "id",
             in: "path",
             required: true,
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
+            schema: { type: "string" },
+            description: "The ID of the habit to update",
           },
         ],
         requestBody: {
@@ -216,159 +227,149 @@ const habitSwaggerDocument = {
               schema: {
                 type: "object",
                 properties: {
-                  name: { type: "string", example: "Drink water" },
-                  frequency: { type: "integer", example: 3 },
-                  period: { type: "string", example: "Daily" },
+                  name: { type: "string", example: "Drink Water" },
+                  description: {
+                    type: "string",
+                    example: "Updated: Drink 2 liters of water",
+                  },
                   start: {
                     type: "string",
                     format: "date-time",
-                    example: "2023-10-01T00:00:00Z",
+                    example: "2025-02-01T00:00:00Z",
                   },
+                  frequency: { type: "integer", example: 2 },
+                  period: { type: "string", example: "Weekly" },
                 },
-                required: ["name", "frequency", "period", "start"],
               },
             },
           },
         },
         responses: {
           200: {
-            description: "Habit successfully updated",
+            description: "Habit updated successfully",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/Habit" },
               },
             },
           },
-          400: {
-            description: "Validation error",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
-          404: {
-            description: "Habit not found",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          404: { description: "Habit not found" },
+          401: { description: "Unauthorized" },
+          500: { description: "Internal server error" },
         },
       },
       delete: {
         summary: "Delete a specific habit",
-        description: "Deletes a habit based on the provided ID.",
+        description:
+          "Delete a habit by its ID. Only the owner of the habit can delete it.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "id",
             in: "path",
             required: true,
-            schema: {
-              type: "string",
-              example: "1c3f5d3b-5b43-4f09-bf72-0537b7cc6b4f",
-            },
-            description: "The unique ID of the habit to delete",
+            schema: { type: "string" },
+            description: "The ID of the habit to delete",
           },
         ],
         responses: {
-          200: {
-            description: "Habit successfully deleted",
-          },
-          404: {
-            description: "Habit not found",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          200: { description: "Habit deleted successfully" },
+          404: { description: "Habit not found" },
+          401: { description: "Unauthorized" },
+          500: { description: "Internal server error" },
         },
       },
     },
+
     "/habits/period/{period}": {
       get: {
         summary: "Get habits by period",
         description:
-          "Retrieve habits filtered by a specific period (e.g., daily, weekly).",
+          "Retrieve habits filtered by a specific period (e.g., 'daily', 'weekly'). Supports pagination.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "period",
             in: "path",
             required: true,
-            schema: {
-              type: "string",
-              example: "daily",
-            },
-            description: "The period to filter habits by (e.g., daily, weekly)",
+            schema: { type: "string", example: "daily" },
+            description: "The period to filter habits by",
+          },
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", example: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", example: 10 },
           },
         ],
         responses: {
           200: {
-            description: "Habits filtered by period retrieved successfully",
+            description: "Habits retrieved successfully by period",
             content: {
               "application/json": {
-                type: "array",
-                items: { $ref: "#/components/schemas/Habit" },
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Habit" },
+                },
               },
             },
           },
-          404: {
-            description: "No habits found for the specified period",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          404: { description: "No habits found for the given period" },
+          401: { description: "Unauthorized" },
         },
       },
     },
+
     "/habits/frequency/{frequency}": {
       get: {
         summary: "Get habits by frequency",
         description:
-          "Retrieve habits filtered by a specific frequency (e.g., 1, 2).",
+          "Retrieve habits filtered by a specific frequency (e.g., 1, 2). Supports pagination.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "frequency",
             in: "path",
             required: true,
-            schema: {
-              type: "integer",
-              example: 2,
-            },
-            description: "The frequency to filter habits by (e.g., 1, 2)",
+            schema: { type: "integer", example: 3 },
+            description: "The frequency to filter habits by",
+          },
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", example: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", example: 10 },
           },
         ],
         responses: {
           200: {
-            description: "Habits filtered by period retrieved successfully",
+            description: "Habits retrieved successfully by frequency",
             content: {
               "application/json": {
-                type: "array",
-                items: { $ref: "#/components/schemas/Habit" },
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Habit" },
+                },
               },
             },
           },
-          404: {
-            description: "No habits found for the specified period",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
-              },
-            },
-          },
+          404: { description: "No habits found for the given frequency" },
+          401: { description: "Unauthorized" },
         },
       },
     },
   },
 };
 
+// Serve Swagger UI
 router.use("/", swaggerUi.serve, (req: Request, res: Response) => {
   return res.send(swaggerUi.generateHTML(habitSwaggerDocument));
 });

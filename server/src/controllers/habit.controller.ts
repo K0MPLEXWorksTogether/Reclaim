@@ -14,6 +14,11 @@ export class HabitController {
     logger.info(`[controller] ${route} called with userId: ${userId}`);
 
     try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
       const { name, description, start, frequency, period } = req.body;
       const newHabitData: createHabitPayload = {
         userId,
@@ -24,7 +29,7 @@ export class HabitController {
         period,
       };
 
-      const newHabit = await habitRepo.createHabit(newHabitData);
+      const newHabit = await habitRepo.createHabit(newHabitData, userId);
       logger.success(
         `[controller] Habit created successfully with id: ${newHabit.id}`
       );
@@ -46,7 +51,12 @@ export class HabitController {
     logger.info(`[controller] ${route} called with habitId: ${habitId}`);
 
     try {
-      const habit = await habitRepo.getHabit(habitId);
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
+      const habit = await habitRepo.getHabit(habitId, userId);
       if (!habit) {
         logger.warn(`[controller] ${route} habit not found: ${habitId}`);
         return res.status(404).json({ error: "Habit not found" });
@@ -69,7 +79,16 @@ export class HabitController {
     );
 
     try {
-      const habits = await habitRepo.getAllHabits(Number(page), Number(limit));
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
+      const habits = await habitRepo.getAllHabits(
+        Number(page),
+        Number(limit),
+        userId
+      );
       logger.success(
         `[controller] ${route} all habits retrieved successfully.`
       );
@@ -86,8 +105,17 @@ export class HabitController {
     logger.info(`[controller] ${route} called with habitId: ${habitId}`);
 
     try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
       const updateData: updateHabitPayload = req.body;
-      const updatedHabit = await habitRepo.updateHabit(habitId, updateData);
+      const updatedHabit = await habitRepo.updateHabit(
+        habitId,
+        updateData,
+        userId
+      );
       logger.success(
         `[controller] ${route} habit updated successfully with id: ${updatedHabit.id}`
       );
@@ -111,7 +139,12 @@ export class HabitController {
     logger.info(`[controller] ${route} called with habitId: ${habitId}`);
 
     try {
-      const deletedHabit = await habitRepo.deleteHabit(habitId);
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
+      const deletedHabit = await habitRepo.deleteHabit(habitId, userId);
       logger.success(
         `[controller] ${route} habit deleted successfully with id: ${deletedHabit.id}`
       );
@@ -138,10 +171,16 @@ export class HabitController {
     );
 
     try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
       const habits = await habitRepo.getHabitsByPeriod(
         Number(page),
         Number(limit),
-        period
+        period,
+        userId
       );
       logger.success(
         `[controller] ${route} habits retrieved successfully for period: ${period}`
@@ -162,10 +201,16 @@ export class HabitController {
     );
 
     try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new InvalidError("userId cannot be null.");
+      }
+
       const habits = await habitRepo.getHabitsByFrequency(
         Number(page),
         Number(limit),
-        frequency
+        frequency,
+        userId
       );
       logger.success(
         `[controller] ${route} habits retrieved successfully for frequency: ${frequency}`
