@@ -10,10 +10,12 @@ import addictionSwaggerRoute from "./swagger/addiction.swagger";
 import journalSwaggerRoute from "./swagger/journal.swagger";
 
 import { requestLogger } from "./middleware/logger.middleware";
+import { ipLimiter } from "./middleware/rateLimiter";
 
 const app = express();
 app.use(express.json());
 app.use(requestLogger);
+app.use(ipLimiter);
 
 app.use("/users", userRoutes);
 app.use("/habits", habitRoutes);
