@@ -66,12 +66,11 @@ model HabitEntry {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     habitId   String
-    entryDate DateTime
     userId    String
     entryTime DateTime
 
     habit Habit @relation(fields: [habitId], references: [id])
     user  User  @relation(fields: [userId], references: [id])
 
-    @@unique([habitId, userId, entryDate, entryTime])
+    @@unique([habitId, userId, entryTime, createdAt])
 }
