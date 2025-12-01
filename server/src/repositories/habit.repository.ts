@@ -1,6 +1,6 @@
 import { Habit, PrismaClient } from "../../generated/prisma-client";
 import { HabitInterface } from "../interfaces/habit.interface";
-import { ValidationError, InvalidError, CompareError } from "../types/errors";
+import { ValidationError, InvalidError } from "../types/errors";
 import { createHabitPayload, updateHabitPayload } from "../types/habits/habit";
 import AppLogger from "../utils/logger";
 
