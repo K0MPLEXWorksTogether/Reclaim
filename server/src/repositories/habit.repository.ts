@@ -1,10 +1,11 @@
-import { Habit, PrismaClient } from "../../generated/prisma-client";
+import { Habit, PrismaClient, Period } from "../../generated/prisma-client";
 import { HabitInterface } from "../interfaces/habit.interface";
 import { ValidationError, InvalidError } from "../types/errors";
 import { createHabitPayload, updateHabitPayload } from "../types/habits/habit";
 import AppLogger from "../utils/logger";
 
 const prisma = new PrismaClient();
+const allowedPeriods = Object.values(Period);
 
 export class HabitRepository implements HabitInterface {
   private logger = AppLogger.getInstance();
@@ -18,6 +19,11 @@ export class HabitRepository implements HabitInterface {
         throw new ValidationError(
           "Habit name, frequency or period are missing."
         );
+      }
+
+      if (!allowedPeriods.includes(data.period)) {
+        this.logger.warn(`[repo] Invalid: The period sent does not exist.`);
+        throw new InvalidError("Habit period does not exist.");
       }
 
       const existingUser = await prisma.habit.findFirst({
@@ -170,7 +176,7 @@ export class HabitRepository implements HabitInterface {
   async getHabitsByPeriod(
     page: number,
     limit: number,
-    period: string,
+    period: Period,
     userId: string
   ): Promise<Habit[]> {
     this.logger.info(

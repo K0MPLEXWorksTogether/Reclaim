@@ -111,7 +111,7 @@ const habitSwaggerDocument = {
                     example: "2025-01-01T00:00:00Z",
                   },
                   frequency: { type: "integer", example: 3 },
-                  period: { type: "string", example: "Weekly" },
+                  period: { type: "string", example: "week" },
                 },
                 required: ["name", "start", "frequency", "period"],
               },
@@ -238,7 +238,7 @@ const habitSwaggerDocument = {
                     example: "2025-02-01T00:00:00Z",
                   },
                   frequency: { type: "integer", example: 2 },
-                  period: { type: "string", example: "Weekly" },
+                  period: { type: "string", example: "week" },
                 },
               },
             },
@@ -285,7 +285,7 @@ const habitSwaggerDocument = {
       get: {
         summary: "Get habits by period",
         description:
-          "Retrieve habits filtered by a specific period (e.g., 'daily', 'weekly'). Supports pagination.",
+          "Retrieve habits filtered by a specific period (e.g., 'day', 'week'). Supports pagination.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {

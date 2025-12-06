@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { HabitRepository } from "../repositories/habit.repository";
+import { Period } from "../../generated/prisma-client";
 import { createHabitPayload, updateHabitPayload } from "../types/habits/habit";
 import { ValidationError, InvalidError } from "../types/errors";
 import AppLogger from "../utils/logger";
@@ -169,6 +170,7 @@ export class HabitController {
     logger.info(
       `[controller] ${route} called with period: ${period}, page: ${page}, limit: ${limit}`
     );
+    const allowedPeriods = Object.values(Period);
 
     try {
       const userId = req.userId;
@@ -176,10 +178,15 @@ export class HabitController {
         throw new InvalidError("userId cannot be null.");
       }
 
+      if (!allowedPeriods.includes(period as Period)) {
+        logger.warn(`[controller] ${period} is not a valid period.`);
+        throw new InvalidError("Habit period does not exist.");
+      }
+
       const habits = await habitRepo.getHabitsByPeriod(
         Number(page),
         Number(limit),
-        period,
+        period as Period,
         userId
       );
       logger.success(
